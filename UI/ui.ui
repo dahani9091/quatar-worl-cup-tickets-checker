@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1073</width>
+    <height>749</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTableWidget" name="table">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>150</y>
+      <width>1021</width>
+      <height>521</height>
+     </rect>
+    </property>
+    <property name="autoScrollMargin">
+     <number>16</number>
+    </property>
+    <attribute name="horizontalHeaderMinimumSectionSize">
+     <number>40</number>
+    </attribute>
+    <attribute name="verticalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderMinimumSectionSize">
+     <number>30</number>
+    </attribute>
+    <column>
+     <property name="text">
+      <string>Match ID</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Match  Desciption</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Stadium</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Cat 1</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Cat 2</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Cat 3</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Shop cat 1</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Shop cat 2</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Shop cat 3</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QPushButton" name="start_btn">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>690</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="stop_btn">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>690</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -65,21 +65,6 @@
       <string>Cat 3</string>
      </property>
     </column>
-    <column>
-     <property name="text">
-      <string>Shop cat 1</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Shop cat 2</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Shop cat 3</string>
-     </property>
-    </column>
    </widget>
    <widget class="QPushButton" name="start_btn">
     <property name="geometry">
@@ -106,6 +91,141 @@
     <property name="text">
      <string>Stop</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>20</y>
+      <width>951</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>User Inputs</string>
+    </property>
+    <widget class="QCheckBox" name="intl_checkbox">
+     <property name="geometry">
+      <rect>
+       <x>700</x>
+       <y>60</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Intl</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="dom_checkbox">
+     <property name="geometry">
+      <rect>
+       <x>700</x>
+       <y>39</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dom</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>640</x>
+       <y>40</y>
+       <width>51</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
+     </property>
+     <property name="text">
+      <string>Shop:</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="wts_checkbox">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>20</y>
+       <width>91</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>WhatsApp:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>30</y>
+       <width>91</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
+     </property>
+     <property name="text">
+      <string>Notifications:</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="email_checkbox">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>70</y>
+       <width>91</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Email:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="phone_input">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>20</y>
+       <width>181</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="inputMask">
+      <string/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>+xxxxxxxxxx</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="email_input">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>70</y>
+       <width>181</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="inputMask">
+      <string/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>example@example.com</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

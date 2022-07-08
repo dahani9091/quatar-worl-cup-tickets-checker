@@ -26,6 +26,8 @@ from dotenv import load_dotenv
 import smtplib
 
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 session_token='1BJWap1sBu1BKyr_xDSxLMLxUic-DyrXoSSWPNVxv6Qhp5Sz3zIE16z73F8lTUpd5nJ0SVdiNA_KDt9zJwxa5xFxUABoWb7y7wx2cHBQj2kQZUDSI4InjcMtMiBqqZkLFGaM7K7yrO6H7Q94KKypkgnbBmUku98t9zCLWtaKgIogh4xbS48ZPGntgdzYEEvzHWUdXXZWBgbs0PyHK7Vpcg6vbVq4InIXiMuxHV_Xdg2scWMoH1HRPeURYzvp1P9HK_qTH_IDiV5inSM1lSVCUkBYP666E5uQ3bXFC3nT5jLkDFTFWuIbFxUSAD_rvzaDFAE-P9vndwm9XnjLncc5fqrbaDbkC3oA='
 api_id='10320937'
 api_hash='44aeeae18fe82d65fe4829e21db6326d' 
@@ -36,7 +38,7 @@ gmail_password='tlkvwsjzivmkacgq'
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi(os.path.join(os.getcwd(),'UI','ui.ui'), self)
+        uic.loadUi(os.path.join(dir_path,"UI/ui.ui"), self)
         self.setWindowTitle('Tickets Checker')
 
         # connect the buttons
@@ -66,7 +68,7 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def get_urls(self):
-        with open(os.path.join(os.getcwd(),"db/db.pkl"), "rb") as f:
+        with open(os.path.join(dir_path,"db/db.pkl"), "rb") as f:
             df = pickle.load(f)
         return df['URL'].tolist()
 
@@ -255,7 +257,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def get_urls_by_match_id(self):
         urls = []
-        with open(os.path.join(os.getcwd(),"db/db.pkl"), "rb") as f:
+        with open(os.path.join(dir_path,"./db/db.pkl"), "rb") as f:
             df = pickle.load(f)
         for ticket in self.checked_tickets_by_match_id :
             url_idx = np.where(df['Match'].apply(lambda x: int(x.replace("#",""))) == int(ticket['match_id']))[0][0]

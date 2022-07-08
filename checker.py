@@ -36,7 +36,7 @@ gmail_password='tlkvwsjzivmkacgq'
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi(os.path.join('UI','ui.ui'), self)
+        uic.loadUi(os.path.join(os.getcwd(),'UI','ui.ui'), self)
         self.setWindowTitle('Tickets Checker')
 
         # connect the buttons
@@ -66,7 +66,7 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def get_urls(self):
-        with open("db/db.pkl", "rb") as f:
+        with open(os.path.join(os.getcwd(),"db/db.pkl"), "rb") as f:
             df = pickle.load(f)
         return df['URL'].tolist()
 
@@ -255,7 +255,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def get_urls_by_match_id(self):
         urls = []
-        with open("db/db.pkl", "rb") as f:
+        with open(os.path.join(os.getcwd(),"db/db.pkl"), "rb") as f:
             df = pickle.load(f)
         for ticket in self.checked_tickets_by_match_id :
             url_idx = np.where(df['Match'].apply(lambda x: int(x.replace("#",""))) == int(ticket['match_id']))[0][0]

@@ -1,25 +1,36 @@
 
 
 import asyncio
-from pprint import pprint
-from time import sleep
-from PyQt5 import QtCore, QtGui, QtWidgets,uic
+# qt imports
+from PyQt5 import  QtGui, QtWidgets,uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import  QTableWidgetItem
+# local imports
 import sys
-import pandas as pd
+from time import sleep
+import os
+import re
 import threading
 import requests
+# data collection imports 
+import pandas as pd
 from bs4 import BeautifulSoup
 import concurrent.futures
-import re
 import traceback
 import numpy as np
-import pywhatkit
-import os
+import pickle
+# sending notification imports
 from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 from dotenv import load_dotenv
+import smtplib
+
+
+session_token='1BJWap1sBu1BKyr_xDSxLMLxUic-DyrXoSSWPNVxv6Qhp5Sz3zIE16z73F8lTUpd5nJ0SVdiNA_KDt9zJwxa5xFxUABoWb7y7wx2cHBQj2kQZUDSI4InjcMtMiBqqZkLFGaM7K7yrO6H7Q94KKypkgnbBmUku98t9zCLWtaKgIogh4xbS48ZPGntgdzYEEvzHWUdXXZWBgbs0PyHK7Vpcg6vbVq4InIXiMuxHV_Xdg2scWMoH1HRPeURYzvp1P9HK_qTH_IDiV5inSM1lSVCUkBYP666E5uQ3bXFC3nT5jLkDFTFWuIbFxUSAD_rvzaDFAE-P9vndwm9XnjLncc5fqrbaDbkC3oA='
+api_id='10320937'
+api_hash='44aeeae18fe82d65fe4829e21db6326d' 
+gmail_user='jonathticketsworldcup@gmail.com'
+gmail_password='tlkvwsjzivmkacgq'
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -55,7 +66,8 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def get_urls(self):
-        df = pd.read_excel("data/matches.xlsx")
+        with open("db/db.pkl", "rb") as f:
+            df = pickle.load(f)
         return df['URL'].tolist()
 
     def get_data_for_table(self):
@@ -63,7 +75,7 @@ class Ui(QtWidgets.QMainWindow):
         for row in self.data:
             row_t = []
             row_t.append(row['match'])
-            row_t.append(f"{row['match']} - {row['host_vs_opposing']}")
+            row_t.append(f"{row['host_vs_opposing']}")
             row_t.append(row['stadium'])
             for k in [1,2,3]:
                 row_t.append(int(row[f'cat {k}']['is_available']))
@@ -79,7 +91,7 @@ class Ui(QtWidgets.QMainWindow):
         self.data_state = 'global'
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.get_page_info, urls)
-
+        print(len(self.data))
         data = self.get_data_for_table()
         # fill the table
         self.table.setRowCount(len(data))
@@ -90,6 +102,10 @@ class Ui(QtWidgets.QMainWindow):
                     item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
                     item.setCheckState(Qt.CheckState.Unchecked)
                     self.table.setItem(row_id, col_id, item)
+                    if int(row[col_id]) == 1:
+                        self.table.item(row_id, col_id).setBackground(QtGui.QColor(0, 255, 0))
+                    else:
+                        self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 0, 0))
                 else :
                     self.table.setItem(row_id, col_id, QtWidgets.QTableWidgetItem(str(row[col_id])))
 
@@ -103,6 +119,8 @@ class Ui(QtWidgets.QMainWindow):
         self.is_intl = False
 
         self.fill_table()
+
+        
 
     def get_page_content(self, url):
             # Get the page content
@@ -237,23 +255,22 @@ class Ui(QtWidgets.QMainWindow):
 
     def get_urls_by_match_id(self):
         urls = []
-        df = pd.read_excel("data/matches.xlsx")
+        with open("db/db.pkl", "rb") as f:
+            df = pickle.load(f)
         for ticket in self.checked_tickets_by_match_id :
             url_idx = np.where(df['Match'].apply(lambda x: int(x.replace("#",""))) == int(ticket['match_id']))[0][0]
             url = df['URL'][url_idx]
             urls.append(url)
         return urls
 
-    def send_telegram_msg(self,phone_number, msg):
+    def send_telegram_msg(self,tg_username, msg):
         load_dotenv()
 
-        api_id = os.getenv("api_id")
-        api_hash = os.getenv("api_hash")
 
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            client = TelegramClient(StringSession(os.getenv("session_token")), api_id, api_hash, loop=loop)
+            client = TelegramClient(StringSession(session_token), api_id, api_hash, loop=loop)
             client.start()
         except Exception as e:
             print(f"Exception while starting the client - {e}")
@@ -264,7 +281,7 @@ class Ui(QtWidgets.QMainWindow):
             try:
                 # Replace the xxxxx in the following line with the full international mobile number of the contact
                 # In place of mobile number you can use the telegram user id of the contact if you know
-                ret_value = await client.send_message(phone_number, msg)
+                ret_value = await client.send_message(tg_username, msg)
             except Exception as e:
                 print(f"Exception while sending the message - {e}")
             else:
@@ -273,16 +290,34 @@ class Ui(QtWidgets.QMainWindow):
         with client:
             client.loop.run_until_complete(send())
 
+    def send_email(self, email, msg):
+        try:
+            SUBJECT = "Quatar World Cup Ticket availability"
+            message = 'Subject: {}\n\n{}'.format(SUBJECT, msg)
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user, email, message)
+            server.quit()
+        except Exception as e:
+            print(f"Exception while sending the email - {e}")
+        else:
+            print(f"Email sent.")
+
     def send_msg(self, match_id, category_idx, ticket_url):
         msg = f'''
         good news!\nticket available for match {match_id}\ncategory: {category_idx}\nticket url: {ticket_url}
         '''
-        # send mesg to whatsapp
-        if self.wts_checkbox.isChecked():
+        # send mesg to telegram
+        if self.telegram_checkbox.isChecked():
             # get the phone number from QlineEdit
-            phone_number = self.phone_input.text()
+            phone_number = self.tg_username_input.text()
             self.send_telegram_msg(phone_number, msg)
         # send mesg to email
+        if self.email_checkbox.isChecked():
+            # get the email from QlineEdit
+            email = self.email_input.text()
+            self.send_email(email, msg)
 
     def notify_user(self, match_id, category_idx, is_dom_available, is_intl_available, urls):
         if is_dom_available and is_intl_available:
@@ -303,6 +338,8 @@ class Ui(QtWidgets.QMainWindow):
                         item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
                         item.setCheckState(Qt.CheckState.Checked)
                         self.table.setItem(row_id, category_idx, item)
+                        # set cell color to green
+                        self.table.item(row_id, category_idx).setBackground(QtGui.QColor(0, 255, 0))
                         
                         print(f"-------> Match {match_id} category {category_idx-2} is available")
                         self.notify_user(match_id, category_idx-2, is_dom_available, is_intl_available, urls)
@@ -318,6 +355,12 @@ class Ui(QtWidgets.QMainWindow):
         print("Updating categories availability thread started")
         
         urls = self.get_urls_by_match_id()
+        if self.waiting_time_input.text() != '':
+            self.waiting_time = float(self.waiting_time_input.text())
+        else:
+            self.waiting_time = 5
+
+        print(self.waiting_time)
 
         while not self.stop_status:
             print("Inside the thread...")
@@ -335,18 +378,11 @@ class Ui(QtWidgets.QMainWindow):
             for idx, ticket in enumerate(self.updated_data):
                 for category in self.checked_tickets_by_match_id[idx]['ticket_categories']:
                     category = category.lower()
-
-                    #### test
-                    ticket[category]['is_available'] = True
-                    ticket[category]['is_dom_available'] = True
-                    ticket[category]['is_intl_available'] = True
-                    ####
-
                     if ticket[category]['is_available'] :
                         category_index = int(category.lower().replace("cat","").strip())+2
                         self.update_table_category_by_match_id(ticket['match'], category_idx = category_index , 
                         is_dom_available = ticket[category]['is_dom_available'], is_intl_available = ticket[category]['is_intl_available'], urls=[ticket['dom_url'], ticket['intl_url']])
-            sleep(5)
+            sleep(self.waiting_time)
 
         self.start_btn.setEnabled(True)
         self.stop_status = False
@@ -379,6 +415,8 @@ class Ui(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     App = QtWidgets.QApplication(sys.argv)  
     OutputDialog = QtWidgets.QStackedWidget()
+    # windows title
+    OutputDialog.setWindowTitle("Ticket Availability Checker")
     #UIs
     ui = Ui()
     # set size of win

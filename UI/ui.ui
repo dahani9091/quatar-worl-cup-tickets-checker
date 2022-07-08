@@ -107,7 +107,7 @@
     <widget class="QCheckBox" name="intl_checkbox">
      <property name="geometry">
       <rect>
-       <x>700</x>
+       <x>530</x>
        <y>60</y>
        <width>81</width>
        <height>31</height>
@@ -120,7 +120,7 @@
     <widget class="QCheckBox" name="dom_checkbox">
      <property name="geometry">
       <rect>
-       <x>700</x>
+       <x>530</x>
        <y>39</y>
        <width>81</width>
        <height>31</height>
@@ -133,7 +133,7 @@
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>470</x>
        <y>40</y>
        <width>51</width>
        <height>51</height>
@@ -146,23 +146,23 @@
       <string>Shop:</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="wts_checkbox">
+    <widget class="QCheckBox" name="telegram_checkbox">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>110</x>
        <y>20</y>
        <width>91</width>
        <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>WhatsApp:</string>
+      <string>Telegram:</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_2">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>10</x>
        <y>30</y>
        <width>91</width>
        <height>61</height>
@@ -178,7 +178,7 @@
     <widget class="QCheckBox" name="email_checkbox">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>110</x>
        <y>70</y>
        <width>91</width>
        <height>41</height>
@@ -188,10 +188,10 @@
       <string>Email:</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="phone_input">
+    <widget class="QLineEdit" name="tg_username_input">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>210</x>
        <y>20</y>
        <width>181</width>
        <height>41</height>
@@ -204,13 +204,13 @@
       <string/>
      </property>
      <property name="placeholderText">
-      <string>+xxxxxxxxxx</string>
+      <string>mytelegramusername</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="email_input">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>210</x>
        <y>70</y>
        <width>181</width>
        <height>41</height>
@@ -224,6 +224,41 @@
      </property>
      <property name="placeholderText">
       <string>example@example.com</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="waiting_time_input">
+     <property name="geometry">
+      <rect>
+       <x>770</x>
+       <y>40</y>
+       <width>131</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="inputMask">
+      <string/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>In seconds</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>670</x>
+       <y>40</y>
+       <width>91</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 75 9pt &quot;MS Shell Dlg 2&quot;;</string>
+     </property>
+     <property name="text">
+      <string>Waiting time:</string>
      </property>
     </widget>
    </widget>

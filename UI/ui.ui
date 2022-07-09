@@ -69,7 +69,7 @@
    <widget class="QPushButton" name="start_btn">
     <property name="geometry">
      <rect>
-      <x>650</x>
+      <x>500</x>
       <y>690</y>
       <width>111</width>
       <height>41</height>
@@ -82,7 +82,7 @@
    <widget class="QPushButton" name="stop_btn">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>200</x>
       <y>690</y>
       <width>111</width>
       <height>41</height>
@@ -261,6 +261,19 @@
       <string>Waiting time:</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="update_btn">
+    <property name="geometry">
+     <rect>
+      <x>810</x>
+      <y>690</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Update</string>
+    </property>
    </widget>
   </widget>
  </widget>

@@ -26,25 +26,27 @@ from dotenv import load_dotenv
 import smtplib
 
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+#dir_path = os.path.dirname(os.path.realpath(__file__))
 
-session_token='1BJWap1sBu1BKyr_xDSxLMLxUic-DyrXoSSWPNVxv6Qhp5Sz3zIE16z73F8lTUpd5nJ0SVdiNA_KDt9zJwxa5xFxUABoWb7y7wx2cHBQj2kQZUDSI4InjcMtMiBqqZkLFGaM7K7yrO6H7Q94KKypkgnbBmUku98t9zCLWtaKgIogh4xbS48ZPGntgdzYEEvzHWUdXXZWBgbs0PyHK7Vpcg6vbVq4InIXiMuxHV_Xdg2scWMoH1HRPeURYzvp1P9HK_qTH_IDiV5inSM1lSVCUkBYP666E5uQ3bXFC3nT5jLkDFTFWuIbFxUSAD_rvzaDFAE-P9vndwm9XnjLncc5fqrbaDbkC3oA='
+session_token='1BJWap1wBu6SGPv0C8xdncdil9Lwa8c9m5QaO_Q56boVJRPfNQ-6YZIDUdWBZSH0ovpRviyJ8fTuIWzycIE337p2hnHDRFZaCnXfDlaXerBAV58QlbiBE58nxDU0zctVfUp-6UqtZ7dtXEjfqutbcB3QuizuMpLSWx42358oWkfqWI0U2RGUcWxKnOs5dumy3k9mwEkF6YoFUxJkMN3_009A-FhLVY9w9F_AeGZN4Sq8j0G6FIgNP85ZwndakNBgeyzW5qYykcreYzStUdFPCIi61lAKISS4rktw5Wd7AwBLHkDBHygiVHDrH2apv_R6YvOZZw6w88w4piHa0bJD57sM6eGYchew='
 api_id='10320937'
 api_hash='44aeeae18fe82d65fe4829e21db6326d' 
-gmail_user='jonathticketsworldcup@gmail.com'
-gmail_password='tlkvwsjzivmkacgq'
+gmail_user='Qatar2022TicketScanner@gmail.com'
+gmail_password='ykujtaszobuwpjju'
 
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi(os.path.join(dir_path,"UI/ui.ui"), self)
+        uic.loadUi(os.path.join(os.getcwd(),"UI/ui.ui"), self)
         self.setWindowTitle('Tickets Checker')
+
 
         # connect the buttons
         self.start_btn.clicked.connect(self.start)
         self.stop_btn.clicked.connect(self.stop)
-        
+        self.update_btn.clicked.connect(self.force_update_table)
+
         # desable stop button
         self.stop_btn.setEnabled(False)
 
@@ -57,7 +59,18 @@ class Ui(QtWidgets.QMainWindow):
         # state of data
         self.data_state = 'global'
 
+        # set default checkbox
+        self.dom_checkbox.setChecked(True)
+        self.is_dom = True
+
+        self.intl_checkbox.setChecked(False)
+        self.is_intl = False
+
         # initiate the table
+        self.table.setStyleSheet('QAbstractItemView::indicator {width:20; height:20;} QTableWidget::item {margin-left:50%; margin-right:50%;}')
+        # resize the first column of the table
+        self.table.setColumnWidth(1, 270)
+        self.table.setColumnWidth(2, 220)
         self.init_table()
 
         # the tickets that should be updated every amount of time
@@ -68,7 +81,7 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def get_urls(self):
-        with open(os.path.join(dir_path,"db/db.pkl"), "rb") as f:
+        with open(os.path.join(os.getcwd(),"db/db.pkl"), "rb") as f:
             df = pickle.load(f)
         return df['URL'].tolist()
 
@@ -93,16 +106,16 @@ class Ui(QtWidgets.QMainWindow):
         self.data_state = 'global'
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.get_page_info, urls)
-        print(len(self.data))
         data = self.get_data_for_table()
         # fill the table
         self.table.setRowCount(len(data))
         for row_id, row in enumerate(data):
            for col_id in range(len(row)):
                 if col_id in [3,4,5]:
-                    item = QTableWidgetItem(str(row[col_id]))
+                    item = QTableWidgetItem()
                     item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
                     item.setCheckState(Qt.CheckState.Unchecked)
+
                     self.table.setItem(row_id, col_id, item)
                     if int(row[col_id]) == 1:
                         self.table.item(row_id, col_id).setBackground(QtGui.QColor(0, 255, 0))
@@ -113,13 +126,6 @@ class Ui(QtWidgets.QMainWindow):
 
     
     def init_table(self):
-        # set default checkbox
-        self.dom_checkbox.setChecked(True)
-        self.is_dom = True
-
-        self.intl_checkbox.setChecked(False)
-        self.is_intl = False
-
         self.fill_table()
 
         
@@ -257,7 +263,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def get_urls_by_match_id(self):
         urls = []
-        with open(os.path.join(dir_path,"./db/db.pkl"), "rb") as f:
+        with open(os.path.join(os.getcwd(),"./db/db.pkl"), "rb") as f:
             df = pickle.load(f)
         for ticket in self.checked_tickets_by_match_id :
             url_idx = np.where(df['Match'].apply(lambda x: int(x.replace("#",""))) == int(ticket['match_id']))[0][0]
@@ -306,9 +312,9 @@ class Ui(QtWidgets.QMainWindow):
         else:
             print(f"Email sent.")
 
-    def send_msg(self, match_id, category_idx, ticket_url):
+    def send_msg(self, match_id, category_idx, match_des ,ticket_url):
         msg = f'''
-        good news!\nticket available for match {match_id}\ncategory: {category_idx}\nticket url: {ticket_url}
+        good news!\nTicket Available for Match {match_id}:\n{match_des}\nCategory: {category_idx}\nTicket url: {ticket_url}
         '''
         # send mesg to telegram
         if self.telegram_checkbox.isChecked():
@@ -321,30 +327,25 @@ class Ui(QtWidgets.QMainWindow):
             email = self.email_input.text()
             self.send_email(email, msg)
 
-    def notify_user(self, match_id, category_idx, is_dom_available, is_intl_available, urls):
+    def notify_user(self, match_id, category_idx, match_des ,is_dom_available, is_intl_available, urls):
         if is_dom_available and is_intl_available:
-            self.send_msg(match_id, category_idx, '\n'.join(urls))
+            self.send_msg(match_id, category_idx, match_des,'\n'.join(urls))
         elif is_dom_available:
-            self.send_msg(match_id, category_idx, urls[0])
+            self.send_msg(match_id, category_idx, match_des,urls[0])
         elif is_intl_available:
-            self.send_msg(match_id, category_idx, urls[1])
+            self.send_msg(match_id, category_idx, match_des,urls[1])
 
-
-    def update_table_category_by_match_id(self,match_id, category_idx, is_dom_available, is_intl_available, urls):
+    def update_table_category_by_match_id(self,match_id, category_idx, match_des ,is_dom_available, is_intl_available, urls):
         try:
             for row_id in range(self.table.rowCount()):
                 if int(self.table.item(row_id, 0).text()) == int(match_id):
-                    if (int(self.table.item(row_id ,category_idx).text()) == 0) :
-                        # update category
-                        item = QTableWidgetItem(str(1))
-                        item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
-                        item.setCheckState(Qt.CheckState.Checked)
-                        self.table.setItem(row_id, category_idx, item)
-                        # set cell color to green
-                        self.table.item(row_id, category_idx).setBackground(QtGui.QColor(0, 255, 0))
-                        
-                        print(f"-------> Match {match_id} category {category_idx-2} is available")
-                        self.notify_user(match_id, category_idx-2, is_dom_available, is_intl_available, urls)
+                    #if (int(self.table.item(row_id ,category_idx).text()) == 0) :
+                    # update category
+                    # set cell color to green
+                    self.table.item(row_id, category_idx).setBackground(QtGui.QColor(0, 255, 0))
+                    
+                    print(f"-------> Match {match_id} category {category_idx-2} is available")
+                    self.notify_user(match_id, category_idx-2, match_des,is_dom_available, is_intl_available, urls)
         except Exception as e:
             print(e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -352,11 +353,36 @@ class Ui(QtWidgets.QMainWindow):
             print(exc_type, fname, exc_tb.tb_lineno)
             print(traceback.format_exc())
 
+    def update_all_table_categories(self, _from=None):
+        self.is_intl = self.intl_checkbox.isChecked()
+        self.is_dom  = self.dom_checkbox.isChecked()
+        # get the urls
+        urls = self.get_urls()
+
+        # scrap the urls
+        self.data = []
+        self.data_state = 'global'
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(self.get_page_info, urls)
+        data = self.get_data_for_table()
+
+        # update table categories
+        for row_id in range(self.table.rowCount()):
+            for col_id in [3,4,5]:
+                if int(data[row_id][col_id]) == 1:
+                    self.table.item(row_id, col_id).setBackground(QtGui.QColor(0, 255, 0))
+                else:
+                    self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 0, 0))
+        if _from == "force_update":
+            self.start_btn.setEnabled(True)
+            self.stop_btn.setEnabled(True)
+            self.update_btn.setEnabled(True)
     def update_categories_availability(self):
 
         print("Updating categories availability thread started")
         
         urls = self.get_urls_by_match_id()
+        print("urls: ", len(urls))
         if self.waiting_time_input.text() != '':
             self.waiting_time = float(self.waiting_time_input.text())
         else:
@@ -382,23 +408,43 @@ class Ui(QtWidgets.QMainWindow):
                     category = category.lower()
                     if ticket[category]['is_available'] :
                         category_index = int(category.lower().replace("cat","").strip())+2
-                        self.update_table_category_by_match_id(ticket['match'], category_idx = category_index , 
+                        self.update_table_category_by_match_id(ticket['match'], category_idx = category_index , match_des = ticket['host_vs_opposing'] , 
                         is_dom_available = ticket[category]['is_dom_available'], is_intl_available = ticket[category]['is_intl_available'], urls=[ticket['dom_url'], ticket['intl_url']])
+            self.update_all_table_categories()
+            if self.stop_status:
+                break
             sleep(self.waiting_time)
-
+        self.change_checkboxes_state("enable")
+        self.update_btn.setEnabled(True)
         self.start_btn.setEnabled(True)
         self.stop_status = False
 
         print("Update categories availability thread stopped")
 
+    def force_update_table(self):
+        self.update_btn.setEnabled(False)
+        self.start_btn.setEnabled(False)
+        # remove color from all the cells
+        for row_id in range(self.table.rowCount()):
+            for col_id in [3,4,5]:
+                self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 255, 255))
+        update_thre = threading.Thread(target=self.update_all_table_categories  ,args = ("force_update",))
+        update_thre.start()
+
+
     def start(self):
+        # desable checkboxes
+        self.change_checkboxes_state("desable")
+
+        # get selected shops
+        self.is_intl = self.intl_checkbox.isChecked()
+        self.is_dom  = self.dom_checkbox.isChecked()
+        
         print("Starting...")
         self.start_btn.setEnabled(False)
+        self.update_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
         
-        # initiate shops
-        self.is_dom = self.dom_checkbox.isChecked()
-        self.is_intl = self.intl_checkbox.isChecked()
         
         # get the checked tickets
         self.checked_tickets_by_match_id = self.get_checked_tickets_by_match_id()
@@ -406,10 +452,24 @@ class Ui(QtWidgets.QMainWindow):
         # update the table with the checked tickets
         update_cats_thread = threading.Thread(target=self.update_categories_availability)
         update_cats_thread.start()
+    def change_checkboxes_state(self, state):
+        if state == "enable":
+            for row_id in range(self.table.rowCount()):
+                for col_id in [3,4,5]:
+                    # enable the checkbox inside the cell
+                    self.table.item(row_id, col_id).setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
+        else:
+            for row_id in range(self.table.rowCount()):
+                for col_id in [3,4,5]:
+                    # enable the checkbox inside the cell
+                    self.table.item(row_id, col_id).setFlags(Qt.ItemFlag.ItemIsEnabled)
+
 
     def stop(self):
+        # enable checkboxes
         self.stop_btn.setEnabled(False)
         self.stop_status = True
+        
         
 
 
@@ -418,7 +478,7 @@ if __name__ == "__main__":
     App = QtWidgets.QApplication(sys.argv)  
     OutputDialog = QtWidgets.QStackedWidget()
     # windows title
-    OutputDialog.setWindowTitle("Ticket Availability Checker")
+    OutputDialog.setWindowTitle("Qatar 2022 Ticket Scanner")
     #UIs
     ui = Ui()
     # set size of win

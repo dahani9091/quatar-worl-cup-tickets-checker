@@ -400,7 +400,7 @@ class Ui(QtWidgets.QMainWindow):
                 executor.map(self.get_page_info, urls)
 
             self.updated_data = sorted(self.updated_data, key=lambda x: int(x['match']))
-
+            ##
 
             # update the categories in the table
             for idx, ticket in enumerate(self.updated_data):

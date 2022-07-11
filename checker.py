@@ -526,7 +526,7 @@ class Ui(QtWidgets.QMainWindow):
         self.stop_status = True
         
         
-
+#
 
 
 if __name__ == "__main__":

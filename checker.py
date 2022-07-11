@@ -1,10 +1,11 @@
 
 
 import asyncio
+from concurrent.futures import thread
 # qt imports
-from PyQt5 import  QtGui, QtWidgets,uic
+from PyQt5 import  QtGui, QtWidgets,uic, QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import  QTableWidgetItem
+from PyQt5.QtWidgets import  QTableWidgetItem, QApplication
 # local imports
 import sys
 from time import sleep
@@ -24,6 +25,10 @@ from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 from dotenv import load_dotenv
 import smtplib
+# play sounds
+import simpleaudio as sa
+
+
 
 
 #dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -66,8 +71,25 @@ class Ui(QtWidgets.QMainWindow):
         self.intl_checkbox.setChecked(False)
         self.is_intl = False
 
+
         # initiate the table
         self.table.setStyleSheet('QAbstractItemView::indicator {width:20; height:20;} QTableWidget::item {margin-left:50%; margin-right:50%;}')
+        self.setStyleSheet('''
+
+                        QProgressBar {
+                            background-color: #DA7B93;
+                            color: rgb(200, 200, 200);
+                            border-style: none;
+                            border-radius: 10px;
+                            text-align: center;
+                            font-size: 30px;
+                        }
+
+                        QProgressBar::chunk {
+                            border-radius: 10px;
+                            background-color: qlineargradient(spread:pad x1:0, x2:1, y1:0.511364, y2:0.523, stop:0 #1C3334, stop:1 #376E6F);
+                        }
+                    ''')
         # resize the first column of the table
         self.table.setColumnWidth(1, 270)
         self.table.setColumnWidth(2, 220)
@@ -314,7 +336,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def send_msg(self, match_id, category_idx, match_des ,ticket_url):
         msg = f'''
-        good news!\nTicket Available for Match {match_id}:\n{match_des}\nCategory: {category_idx}\nTicket url: {ticket_url}
+        good news!\n\nTicket Available for Match {match_id}:\n\n{match_des}\nCategory: {category_idx}\n\nTicket url: {ticket_url}
         '''
         # send mesg to telegram
         if self.telegram_checkbox.isChecked():
@@ -329,11 +351,22 @@ class Ui(QtWidgets.QMainWindow):
 
     def notify_user(self, match_id, category_idx, match_des ,is_dom_available, is_intl_available, urls):
         if is_dom_available and is_intl_available:
+
             self.send_msg(match_id, category_idx, match_des,'\n'.join(urls))
         elif is_dom_available:
+            print("I'm here")
             self.send_msg(match_id, category_idx, match_des,urls[0])
         elif is_intl_available:
             self.send_msg(match_id, category_idx, match_des,urls[1])
+
+    def play_voice_atert(self):
+        # open the pickle file and load the wave object
+        with open('db/icq.pkl', 'rb') as f:
+            wave_object = pickle.load(f)
+        # play it using simpleaudio
+        print("Playing the voice alert...")
+        play_object = wave_object.play()    
+        play_object.wait_done()
 
     def update_table_category_by_match_id(self,match_id, category_idx, match_des ,is_dom_available, is_intl_available, urls):
         try:
@@ -345,13 +378,17 @@ class Ui(QtWidgets.QMainWindow):
                     self.table.item(row_id, category_idx).setBackground(QtGui.QColor(0, 255, 0))
                     
                     print(f"-------> Match {match_id} category {category_idx-2} is available")
-                    self.notify_user(match_id, category_idx-2, match_des,is_dom_available, is_intl_available, urls)
+                    self.notify_user(match_id, category_idx-2, match_des, is_dom_available, is_intl_available, urls)
+                    self.play_voice_atert()
         except Exception as e:
             print(e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
             print(traceback.format_exc())
+
+
+
 
     def update_all_table_categories(self, _from=None):
         self.is_intl = self.intl_checkbox.isChecked()
@@ -373,10 +410,16 @@ class Ui(QtWidgets.QMainWindow):
                     self.table.item(row_id, col_id).setBackground(QtGui.QColor(0, 255, 0))
                 else:
                     self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 0, 0))
+        # scroll to the last item in the table
+        self.table.scrollToBottom()
+        # scroll to the first item in the table
+        self.table.scrollToTop()
+
         if _from == "force_update":
             self.start_btn.setEnabled(True)
             self.stop_btn.setEnabled(True)
             self.update_btn.setEnabled(True)
+
     def update_categories_availability(self):
 
         print("Updating categories availability thread started")
@@ -424,12 +467,24 @@ class Ui(QtWidgets.QMainWindow):
     def force_update_table(self):
         self.update_btn.setEnabled(False)
         self.start_btn.setEnabled(False)
+        # show the waiting label
+        # start loading thread
         # remove color from all the cells
         for row_id in range(self.table.rowCount()):
             for col_id in [3,4,5]:
                 self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 255, 255))
         update_thre = threading.Thread(target=self.update_all_table_categories  ,args = ("force_update",))
         update_thre.start()
+        while True:
+            # make dom_checkbox checkbox checked
+            self.dom_checkbox.setChecked(not self.is_dom)
+            self.dom_checkbox.setChecked(self.is_dom)
+            if not update_thre.is_alive():
+                break
+            
+
+
+
 
 
     def start(self):

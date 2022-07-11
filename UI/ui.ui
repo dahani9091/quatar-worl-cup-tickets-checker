@@ -245,7 +245,7 @@
       <string>In seconds</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_3">
+    <widget class="QLabel" name="label_waiting_time">
      <property name="geometry">
       <rect>
        <x>670</x>

@@ -43,7 +43,7 @@ gmail_password='ykujtaszobuwpjju'
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi(os.path.join(os.getcwd(),"UI/ui.ui"), self)
+        uic.loadUi(os.path.join(os.getcwd(),"UI/ui_freem.ui"), self)
         self.setWindowTitle('Tickets Checker')
 
 
@@ -293,33 +293,6 @@ class Ui(QtWidgets.QMainWindow):
             urls.append(url)
         return urls
 
-    def send_telegram_msg(self,tg_username, msg):
-        load_dotenv()
-
-
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            client = TelegramClient(StringSession(session_token), api_id, api_hash, loop=loop)
-            client.start()
-        except Exception as e:
-            print(f"Exception while starting the client - {e}")
-        else:
-            print("Client started")
-
-        async def send():
-            try:
-                # Replace the xxxxx in the following line with the full international mobile number of the contact
-                # In place of mobile number you can use the telegram user id of the contact if you know
-                ret_value = await client.send_message(tg_username, msg)
-            except Exception as e:
-                print(f"Exception while sending the message - {e}")
-            else:
-                print(f"Message sent.")
-
-        with client:
-            client.loop.run_until_complete(send())
-
     def send_email(self, email, msg):
         try:
             SUBJECT = "Quatar World Cup Ticket availability"
@@ -338,11 +311,6 @@ class Ui(QtWidgets.QMainWindow):
         msg = f'''
         good news!\n\nTicket Available for Match {match_id}:\n\n{match_des}\nCategory: {category_idx}\n\nTicket url: {ticket_url}
         '''
-        # send mesg to telegram
-        if self.telegram_checkbox.isChecked():
-            # get the phone number from QlineEdit
-            phone_number = self.tg_username_input.text()
-            self.send_telegram_msg(phone_number, msg)
         # send mesg to email
         if self.email_checkbox.isChecked():
             # get the email from QlineEdit
@@ -351,10 +319,8 @@ class Ui(QtWidgets.QMainWindow):
 
     def notify_user(self, match_id, category_idx, match_des ,is_dom_available, is_intl_available, urls):
         if is_dom_available and is_intl_available:
-
             self.send_msg(match_id, category_idx, match_des,'\n'.join(urls))
         elif is_dom_available:
-            print("I'm here")
             self.send_msg(match_id, category_idx, match_des,urls[0])
         elif is_intl_available:
             self.send_msg(match_id, category_idx, match_des,urls[1])
@@ -434,7 +400,7 @@ class Ui(QtWidgets.QMainWindow):
         if self.waiting_time_input.text() != '':
             self.waiting_time = float(self.waiting_time_input.text())
         else:
-            self.waiting_time = 5
+            self.waiting_time = 60
 
         print(self.waiting_time)
 
@@ -454,6 +420,10 @@ class Ui(QtWidgets.QMainWindow):
             for idx, ticket in enumerate(self.updated_data):
                 for category in self.checked_tickets_by_match_id[idx]['ticket_categories']:
                     category = category.lower()
+                    #
+                    ticket[category]['is_available'] = True
+                    ticket[category]['is_dom_available'] = True
+                    #
                     if ticket[category]['is_available'] :
                         category_index = int(category.lower().replace("cat","").strip())+2
                         self.update_table_category_by_match_id(ticket['match'], category_idx = category_index , match_des = ticket['host_vs_opposing'] , 
@@ -489,25 +459,31 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def start(self):
-        # desable checkboxes
-        self.change_checkboxes_state("desable")
+        waiting_time = float(self.waiting_time_input.text())
+        if waiting_time < 60:
+            # show error 
+            self.duration_error_label.setText("Minimum waiting time is 60s")
+        else:
+            self.duration_error_label.setText("")
+            # desable checkboxes
+            self.change_checkboxes_state("desable")
 
-        # get selected shops
-        self.is_intl = self.intl_checkbox.isChecked()
-        self.is_dom  = self.dom_checkbox.isChecked()
-        
-        print("Starting...")
-        self.start_btn.setEnabled(False)
-        self.update_btn.setEnabled(False)
-        self.stop_btn.setEnabled(True)
-        
-        
-        # get the checked tickets
-        self.checked_tickets_by_match_id = self.get_checked_tickets_by_match_id()
+            # get selected shops
+            self.is_intl = self.intl_checkbox.isChecked()
+            self.is_dom  = self.dom_checkbox.isChecked()
+            
+            print("Starting...")
+            self.start_btn.setEnabled(False)
+            self.update_btn.setEnabled(False)
+            self.stop_btn.setEnabled(True)
+            
+            
+            # get the checked tickets
+            self.checked_tickets_by_match_id = self.get_checked_tickets_by_match_id()
 
-        # update the table with the checked tickets
-        self.update_cats_worker = Worker(self.update_categories_availability, idx = None)
-        self.update_cats_worker.start()
+            # update the table with the checked tickets
+            self.update_cats_worker = Worker(self.update_categories_availability, idx = None)
+            self.update_cats_worker.start()
     def change_checkboxes_state(self, state):
         if state == "enable":
             for row_id in range(self.table.rowCount()):

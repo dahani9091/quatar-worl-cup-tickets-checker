@@ -270,6 +270,22 @@
       <string>Waiting time:</string>
      </property>
     </widget>
+    <widget class="QLabel" name="duration_error_label">
+     <property name="geometry">
+      <rect>
+       <x>770</x>
+       <y>90</y>
+       <width>171</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 85, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="update_btn">
     <property name="geometry">

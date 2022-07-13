@@ -4,7 +4,7 @@ import asyncio
 from concurrent.futures import thread
 # qt imports
 from PyQt5 import  QtGui, QtWidgets,uic, QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,pyqtSlot
 from PyQt5.QtWidgets import  QTableWidgetItem, QApplication
 # local imports
 import sys
@@ -390,7 +390,7 @@ class Ui(QtWidgets.QMainWindow):
 
 
 
-    def update_all_table_categories(self, _from=None):
+    def update_all_table_categories(self ,_from=None, thread_signal=None): 
         self.is_intl = self.intl_checkbox.isChecked()
         self.is_dom  = self.dom_checkbox.isChecked()
         # get the urls
@@ -401,6 +401,18 @@ class Ui(QtWidgets.QMainWindow):
         self.data_state = 'global'
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.get_page_info, urls)
+
+        # scroll to the last item in the table
+        self.table.scrollToBottom()
+        # scroll to the first item in the table
+        self.table.scrollToTop()
+
+        if _from == "force_update":
+            self.start_btn.setEnabled(True)
+            self.update_btn.setEnabled(True)
+            thread_signal.emit(True)
+
+    def update_cat_with_colors(self):
         data = self.get_data_for_table()
 
         # update table categories
@@ -410,15 +422,8 @@ class Ui(QtWidgets.QMainWindow):
                     self.table.item(row_id, col_id).setBackground(QtGui.QColor(0, 255, 0))
                 else:
                     self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 0, 0))
-        # scroll to the last item in the table
-        self.table.scrollToBottom()
-        # scroll to the first item in the table
-        self.table.scrollToTop()
 
-        if _from == "force_update":
-            self.start_btn.setEnabled(True)
-            self.stop_btn.setEnabled(True)
-            self.update_btn.setEnabled(True)
+    
 
     def update_categories_availability(self):
 
@@ -433,7 +438,7 @@ class Ui(QtWidgets.QMainWindow):
 
         print(self.waiting_time)
 
-        while not self.stop_status:
+        while True:
             print("Inside the thread...")
             self.updated_data = []
 
@@ -454,17 +459,15 @@ class Ui(QtWidgets.QMainWindow):
                         self.update_table_category_by_match_id(ticket['match'], category_idx = category_index , match_des = ticket['host_vs_opposing'] , 
                         is_dom_available = ticket[category]['is_dom_available'], is_intl_available = ticket[category]['is_intl_available'], urls=[ticket['dom_url'], ticket['intl_url']])
             self.update_all_table_categories()
-            if self.stop_status:
-                break
+            # if self.stop_status:
+            #     break
             sleep(self.waiting_time)
-        self.change_checkboxes_state("enable")
-        self.update_btn.setEnabled(True)
-        self.start_btn.setEnabled(True)
-        self.stop_status = False
 
-        print("Update categories availability thread stopped")
+
+        
 
     def force_update_table(self):
+        self.stop_btn.setEnabled(False)
         self.update_btn.setEnabled(False)
         self.start_btn.setEnabled(False)
         # show the waiting label
@@ -473,14 +476,12 @@ class Ui(QtWidgets.QMainWindow):
         for row_id in range(self.table.rowCount()):
             for col_id in [3,4,5]:
                 self.table.item(row_id, col_id).setBackground(QtGui.QColor(255, 255, 255))
-        update_thre = threading.Thread(target=self.update_all_table_categories  ,args = ("force_update",))
-        update_thre.start()
-        while True:
-            # make dom_checkbox checkbox checked
-            self.dom_checkbox.setChecked(not self.is_dom)
-            self.dom_checkbox.setChecked(self.is_dom)
-            if not update_thre.is_alive():
-                break
+        self.update_all_cats_worker = Worker(self.update_all_table_categories,_from = "force_update", idx = 1)
+        self.update_all_cats_worker.any_signal.connect(self.update_cat_with_colors)
+        self.update_all_cats_worker.start()
+        #update_thre = threading.Thread(target=self.update_all_table_categories  ,args = ("force_update",))
+        #update_thre.start()
+        
             
 
 
@@ -505,8 +506,8 @@ class Ui(QtWidgets.QMainWindow):
         self.checked_tickets_by_match_id = self.get_checked_tickets_by_match_id()
 
         # update the table with the checked tickets
-        update_cats_thread = threading.Thread(target=self.update_categories_availability)
-        update_cats_thread.start()
+        self.update_cats_worker = Worker(self.update_categories_availability, idx = None)
+        self.update_cats_worker.start()
     def change_checkboxes_state(self, state):
         if state == "enable":
             for row_id in range(self.table.rowCount()):
@@ -522,11 +523,32 @@ class Ui(QtWidgets.QMainWindow):
 
     def stop(self):
         # enable checkboxes
-        self.stop_btn.setEnabled(False)
-        self.stop_status = True
+        self.update_cats_worker.stop()
+        #self.stop_status = True
+        self.change_checkboxes_state("enable")
+        self.update_btn.setEnabled(True)
+        self.start_btn.setEnabled(True)
+        self.stop_status = False
+        print("Update categories availability thread stopped")
         
-        
-#
+class Worker(QtCore.QThread):
+    any_signal = QtCore.pyqtSignal(int)
+
+    def __init__(self, function, *args, **kwargs):
+        super(Worker, self).__init__()
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+
+    @pyqtSlot()
+    def run(self):
+        if self.kwargs['idx']:
+            self.function(self.kwargs['_from'],self.any_signal )
+        else:
+            self.function()
+
+    def stop(self):
+        self.terminate()
 
 
 if __name__ == "__main__":

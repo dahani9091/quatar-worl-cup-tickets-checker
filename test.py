@@ -14,3 +14,10 @@ import pickle
 with open('db/icq.pkl', 'wb') as f:
     pickle.dump(wave_object, f)
 
+# open the pickle file and load the wave object
+with open('db/icq.pkl', 'rb') as f:
+    wave_object = pickle.load(f)
+# play it using simpleaudio
+print("Playing the voice alert...")
+play_object = wave_object.play()    
+play_object.wait_done()

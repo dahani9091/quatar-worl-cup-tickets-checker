@@ -26,6 +26,9 @@
     <property name="autoScrollMargin">
      <number>16</number>
     </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
     <attribute name="horizontalHeaderMinimumSectionSize">
      <number>40</number>
     </attribute>
@@ -147,6 +150,9 @@
      </property>
     </widget>
     <widget class="QCheckBox" name="telegram_checkbox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>110</x>
@@ -154,6 +160,9 @@
        <width>91</width>
        <height>41</height>
       </rect>
+     </property>
+     <property name="accessibleDescription">
+      <string/>
      </property>
      <property name="text">
       <string>Telegram:</string>
@@ -189,6 +198,9 @@
      </property>
     </widget>
     <widget class="QLineEdit" name="tg_username_input">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>210</x>
@@ -196,6 +208,9 @@
        <width>181</width>
        <height>41</height>
       </rect>
+     </property>
+     <property name="accessibleDescription">
+      <string/>
      </property>
      <property name="inputMask">
       <string/>
